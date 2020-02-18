@@ -1,0 +1,287 @@
+import combinaciones
+import dados
+import basededatos
+import sqlite3
+import os
+
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, 'RESULTADOS.db')
+print(filename)
+base = sqlite3.connect(filename)
+c = base.cursor()
+
+
+def main():
+
+
+    print("ALUMNO:  SEBASTIAN NUCARA")
+    print("                                  ")
+    print("                                  ")
+    print("-----------------------------------")
+    print("    BIENVENIDOS A LA GENERALA!!!")
+    print("-----------------------------------")
+    print("                                   ")
+
+    tablanueva="NO"
+    while (tablanueva !="SI"):
+
+         c.execute('''SELECT VUELTA FROM CONTROL WHERE ID = 1;''')
+         vuelta = c.fetchall()
+         vuelta = vuelta[0]
+         vuelta = vuelta[0]
+         c.execute('''SELECT JUGADOR FROM CONTROL WHERE ID = 1;''')
+         jugador = c.fetchall()
+         jugador = jugador[0]
+         jugador = jugador[0]
+
+         c.execute('''SELECT CANTJUGADORES FROM CONTROL WHERE ID = 1;''')
+         cantjugadores = c.fetchall()
+         cantjugadores = cantjugadores[0]
+         cantjugadores = cantjugadores[0]
+
+         if not ((vuelta > 10) and (jugador == cantjugadores)):
+             tablanueva = input("¿Continuamos el juego PENDIENTE?<si-no>")
+             tablanueva = tablanueva.upper()
+
+         if tablanueva =="NO":
+              print("COMENZAMOS UN NUEVO JUEGO!!!(si el juego queda sin terminar se puede retomar)")
+              print("                        ")
+              basededatos.borrartabla()
+              basededatos.creartabla()
+              basededatos.inicializarjugador()
+              jugador = 0
+              vuelta = 1
+
+              while True:
+                  cantjugadores = input("Ingresa la cantidad de jugadores:")
+                  if cantjugadores.isdigit():
+                      cantjugadores = int(cantjugadores)
+                      c.execute('''UPDATE CONTROL SET CANTJUGADORES={} WHERE ID=1;'''.format(cantjugadores))
+                      base.commit()
+                      for i in range(cantjugadores - 1):
+                          basededatos.inicializarjugador()
+
+                      break
+                  else:
+                      os.system("cls")
+                      print("---------------")
+                      print("Ingreso erroneo")
+                      print("---------------")
+
+              break
+
+
+
+         else:
+             if (tablanueva!="SI"):
+                 print("Ingreso erroneo")
+
+
+    print("                        ")
+
+
+    # CONTROLAMOS QUE LA CANTIDAD DE VUELTAS SEA COMO MAXIMO 10,Y QUE EL JUGADOR QUIERA SEGUIR JUGANDO
+    gano="NO"
+    lanzar="SI"
+    while (vuelta < 11) and (lanzar!="NO")and(gano!="SI"):
+        os.system("cls")
+        print("               ")
+        print("VUELTA:", vuelta)
+
+        # CONTROLAMOS EL TURNO DE CADA JUGADOR DE ACUERDO A LA CANTIDAD QUE SEAN Y EJECUTAMOS EL PRIMER LANZAMIENTO
+        while (lanzar!="NO"):
+            jugador = jugador + 1
+            if jugador > cantjugadores:
+                jugador = 1
+
+            print("      ")
+            print("TURNO DEL JUGADOR:", jugador)
+            c.execute('''UPDATE CONTROL SET JUGADOR={} WHERE ID =1;'''.format(jugador))
+            base.commit()
+
+            lanzar="SI"
+            contador = 0
+            if lanzar == "SI":
+                mesa = dados.tirardados(5)
+                mesa.sort()
+                contador = contador + 1
+                print("                                           ")
+                print("                                           ")
+                print("Lanzamiento:", contador)
+                print("-------------------------------------------")
+                print("DADOS EN MESA:", mesa)
+                print("-------------------------------------------")
+                print("                                           ")
+
+                break
+            elif lanzar == "NO":
+                break
+            else:
+
+                jugador = jugador - 1
+
+                print("Ingreso erroneo")
+
+
+        # PREGUNTAMOS SI EL JUGADOR QUIERE RETIRAR DADOS DE LA "MESA" PARA VOLVER A LANZAR
+        # PREGUNTAMOS CUALES SON LOS DADOS Y MOSTRAMOS COMO VA QUEDANDO LA "MESA"
+        # EN EL CASO DE NO QUERER RETIRAR MAS DADOS SE EJECUTA EL LANZAMIENTO
+        while lanzar == "SI":
+            if (contador < 3) and (len(mesa)>0):
+                quitar = input("¿sacamos dados de la mesa para volver a lanzar? <si-no>")
+                quitar = quitar.upper()
+            else:
+                quitar = "NO"
+
+            if quitar == "SI":
+                dado = input("¿que VALOR/ES sacamos de la mesa? (deben separarse por espacios):")
+                dado=dado.split()
+                for i in range (len(dado)):
+
+                    if dado[i] in mesa:
+                         mesa.remove(dado[i])
+
+                    else:
+                         print("EL INGRESO ({}) NO CORRESPONDE".format(dado[i]))
+                         print("      ")
+
+                print("la mesa quedo asi:", mesa)
+
+            elif quitar == 'NO':
+
+                if len(mesa) < 5:
+                    agregado = dados.tirardados(5 - len(mesa))
+                    mesa = mesa + agregado
+                    mesa.sort()
+                    contador = contador + 1
+                    os.system("cls")
+                    print("     ")
+                    print("VUELTA:", vuelta)
+                    print("      ")
+                    print("TURNO DEL JUGADOR:", jugador)
+                    print("                                           ")
+                    print("                                           ")
+                    print("Lanzamiento:", contador)
+                    print("-------------------------------------------")
+                    print("DADOS EN MESA:", mesa)
+                    print("-------------------------------------------")
+                    print("                                           ")
+
+
+                # PREGUNTAMOS POR LA SUMA DE PUNTOS
+                else:
+                    resultado="NO SE REGISTRAN COMBINACIONES ESPECIALES"
+                    sino=""
+                    while (sino != "SI"):
+                         sino=input("¿sumamos puntos por categoria(1 al 6)?<si-no>")
+                         sino=sino.upper()
+
+                         if sino == "SI":
+
+                             break
+
+                         elif sino =="NO":
+                             resultado = combinaciones.combinaciones(mesa, contador, jugador)
+                             if resultado == "GENERALA SERVIDA!!!":
+                                 gano = "SI"
+                             break
+
+                         else:
+                               print("Ingreso erroneo")
+
+
+                    print("                                           ")
+                    print("=======================================================")
+                    print("        ", resultado, "                      ")
+                    print("=======================================================")
+                    print("                                           ")
+
+                    # SI SE OBTUVO GENERALA SERVIDA EL JUEGO SE CORTA Y EMITE EL MENSAJE DE JUEGO GANADO
+                    if gano == "SI":
+                        print("--------------------------")
+                        print("   GANASTE EL JUEGO!!!!   ")
+                        print("--------------------------")
+                        input("para salir presione una tecla cualquiera")
+                        break
+
+                    # SI NO HUBO COMBINACIONES O ESTA FUERON REALIZADAS, SE CALCULA LA PUNTUACION EN LA BASE DE DATOS
+                    if (resultado == "LA COMBINACION YA FUE REALIZADA")or(sino =="SI"):
+                        contador=0
+                        while contador<3:
+                             tupla = dados.suma_por_dado(mesa)
+                             total = tupla[0]
+                             dado = tupla[1]
+
+                             if dado == "1":
+                                  categoria = "UNO"
+
+                             elif dado == "2":
+                                  categoria = "DOS"
+
+                             elif dado == "3":
+                                  categoria = "TRES"
+
+                             elif dado == "4":
+                                  categoria = "CUATRO"
+
+                             elif dado == "5":
+                                  categoria = "CINCO"
+
+                             elif dado == "6":
+                                  categoria = "SEIS"
+
+                             c.execute('''SELECT {} FROM TABLA WHERE JUGADOR={};'''.format(categoria, jugador))
+                             a = c.fetchall()
+
+
+                             if a == [(0,)]:
+                                    c.execute('''UPDATE TABLA SET ({})={}   WHERE JUGADOR={};'''.format(categoria, total, jugador))
+                                    c.execute('''UPDATE TABLA SET (PUNTOS)=PUNTOS+{} WHERE JUGADOR={};'''.format(total, jugador))
+                                    base.commit()
+                                    break
+                             else:
+                                    contador=contador+1
+                                    print("               ")
+                                    print("----------------------------------")
+                                    print("LA CATEGORIA {} YA FUE COMPLETADA ".format(dado))
+                                    print("----------------------------------")
+                                    print("               ")
+
+
+                    basededatos.mostrartabla()
+                    lanzar = input("¿SEGUIMOS JUGANDO? <si-no>")
+                    lanzar = lanzar.upper()
+                    break
+
+            else:
+                print("Ingreso erroneo")
+
+
+
+        # CUANDO SE COMPLETAN LAS 10 VUELTAS SE IMPRIME LAS POSICIONES DE MAYOR A MENOR PARA SABER EL GANADOR
+        if (vuelta >= 10) and (jugador == cantjugadores):
+            print("SE COMPLETARON LAS 10 VUELTAS. EL JUEGO HA FINALIZADO")
+            print("                         ")
+            c.execute('''SELECT JUGADOR ,PUNTOS FROM TABLA ORDER BY PUNTOS DESC;''')
+            a = c.fetchall()
+            print("                  ")
+            print(" POSICIONES FINALES")
+            print("----------------------------------")
+            print("    JUGADOR                PUNTOS")
+            print("----------------------------------")
+            for i in a:
+                print("     ", i[0], "                  ", i[1])
+                print("----------------------------------")
+
+            print("                  ")
+            print("                  ")
+            basededatos.mostrarestadisticas()
+            print("                  ")
+            input("para salir presione una tecla cualquiera")
+
+        if jugador == cantjugadores:
+            vuelta = vuelta + 1
+            c.execute('''UPDATE CONTROL SET VUELTA={} WHERE ID = 1;'''.format(vuelta))
+            base.commit()
+
+main()
