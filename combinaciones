@@ -1,0 +1,112 @@
+import sqlite3
+import os
+import dados
+
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, 'RESULTADOS.db')
+
+base = sqlite3.connect(filename)
+c = base.cursor()
+
+
+# FUNCION QUE CONSULTA LAS COMBINACIONES SERVIDAS O ARMADAS(E,F,P,G,DG) CUANDO EL JUGADOR SE PLANTA O HACE EL TERCER LANZAMIENTO MAXIMO
+# SI LA FUNCION ENCUENTRA UNA COMBINACION VALIDA AGREGA LOS PUNTOS A LA BASE DE DATOS (SI ES QUE NO SE HAN AGREGADO PUNTOS ANTERIORMENTE)
+# TAMBIEN AGREGA LOS PUNTOS OBTENIDOS AL ACUMULADOR DE PUNTOS TOTALES PARA SABER LAS POSICIONES DEL JUEGO
+def combinaciones(mesa, contador, jugador):
+    if ((mesa[0] == mesa[1]) and (mesa[1] == mesa[2]) and (mesa[2] == mesa[3]) and (mesa[3] == mesa[4])) and (
+        contador == 1):
+        c.execute('''UPDATE ESTADISTICAS SET (CANTIDAD)=CANTIDAD+1 WHERE COMBINACION = "GENERALAS SERVIDAS";''')
+        base.commit()
+        return "GENERALA SERVIDA!!!"
+
+    elif (mesa[0] == mesa[1]) and (mesa[1] == mesa[2]) and (mesa[2] == mesa[3]) and (mesa[3] == mesa[4]):
+        c.execute('''SELECT G FROM TABLA WHERE JUGADOR={}'''.format(jugador))
+        a = c.fetchall()
+        if a == [(0,)]:
+            c.execute('''UPDATE TABLA SET (G)=50 WHERE JUGADOR={}'''.format(jugador))
+            c.execute('''UPDATE TABLA SET (PUNTOS)=PUNTOS+50 WHERE JUGADOR={}'''.format(jugador))
+            c.execute('''UPDATE ESTADISTICAS SET (CANTIDAD)=CANTIDAD+1 WHERE COMBINACION = "GENERALAS";''')
+            base.commit()
+            return "GENERALA (50 puntos)"
+        else:
+            return "LA COMBINACION YA FUE REALIZADA"
+
+    elif ((("1" in mesa) and ("2" in mesa) and ("3" in mesa) and ("4" in mesa) and ("5" in mesa)) or (
+                    ("2" in mesa) and ("3" in mesa) and ("4" in mesa) and ("5" in mesa) and ("6" in mesa))) and (
+        contador == 1):
+        c.execute('''SELECT E FROM TABLA WHERE JUGADOR={}'''.format(jugador))
+        a = c.fetchall()
+        if a == [(0,)]:
+            c.execute('''UPDATE TABLA SET (E)=25 WHERE JUGADOR={}'''.format(jugador))
+            c.execute('''UPDATE TABLA SET (PUNTOS)=PUNTOS+25 WHERE JUGADOR={}'''.format(jugador))
+            c.execute('''UPDATE ESTADISTICAS SET (CANTIDAD)=CANTIDAD+1 WHERE COMBINACION = "ESCALERAS SERVIDAS";''')
+            base.commit()
+            return "ESCALERA SERVIDA (25 puntos)"
+        else:
+            return "LA COMBINACION YA FUE REALIZADA"
+
+    elif (("1" in mesa) and ("2" in mesa) and ("3" in mesa) and ("4" in mesa) and ("5" in mesa)) or (
+                    ("2" in mesa) and ("3" in mesa) and ("4" in mesa) and ("5" in mesa) and ("6" in mesa)):
+        c.execute('''SELECT E FROM TABLA WHERE JUGADOR={}'''.format(jugador))
+        a = c.fetchall()
+        if a == [(0,)]:
+            c.execute('''UPDATE TABLA SET (E)=20 WHERE JUGADOR={}'''.format(jugador))
+            c.execute('''UPDATE TABLA SET (PUNTOS)=PUNTOS+20 WHERE JUGADOR={}'''.format(jugador))
+            c.execute('''UPDATE ESTADISTICAS SET (CANTIDAD)=CANTIDAD+1 WHERE COMBINACION = "ESCALERAS";''')
+            base.commit()
+            return "ESCALERA (20 puntos)"
+        else:
+            return "LA COMBINACION YA FUE REALIZADA"
+
+    elif (4 in dados.contadores(mesa)) and (1 in dados.contadores(mesa)) and (contador == 1):
+        c.execute('''SELECT P FROM TABLA WHERE JUGADOR={}'''.format(jugador))
+        a = c.fetchall()
+        if a == [(0,)]:
+            c.execute('''UPDATE TABLA SET (P)=45 WHERE JUGADOR={}'''.format(jugador))
+            c.execute('''UPDATE TABLA SET (PUNTOS)=PUNTOS+45 WHERE JUGADOR={}'''.format(jugador))
+            c.execute('''UPDATE ESTADISTICAS SET (CANTIDAD)=CANTIDAD+1 WHERE COMBINACION = "POKERS SERVIDOS";''')
+            base.commit()
+            return "POKER SERVIDO (45 puntos)"
+        else:
+            return "LA COMBINACION YA FUE REALIZADA"
+
+    elif (4 in dados.contadores(mesa)) and (1 in dados.contadores(mesa)):
+        c.execute('''SELECT P FROM TABLA WHERE JUGADOR={}'''.format(jugador))
+        a = c.fetchall()
+        if a == [(0,)]:
+            c.execute('''UPDATE TABLA SET (P)=40 WHERE JUGADOR={} '''.format(jugador))
+            c.execute('''UPDATE TABLA SET (PUNTOS)=PUNTOS+40 WHERE JUGADOR={} '''.format(jugador))
+            c.execute('''UPDATE ESTADISTICAS SET (CANTIDAD)=CANTIDAD+1 WHERE COMBINACION = "POKERS";''')
+            base.commit()
+            return "POKER (40 puntos)"
+        else:
+            return "LA COMBINACION YA FUE REALIZADA"
+
+    elif ((3 in dados.contadores(mesa)) and (2 in dados.contadores(mesa))) and (contador == 1):
+        c.execute('''SELECT F FROM TABLA WHERE JUGADOR={}'''.format(jugador))
+        a = c.fetchall()
+        if a == [(0,)]:
+            c.execute('''UPDATE TABLA SET (F)=35 WHERE JUGADOR={} '''.format(jugador))
+            c.execute('''UPDATE TABLA SET (PUNTOS)=PUNTOS+35 WHERE JUGADOR={} '''.format(jugador))
+            c.execute('''UPDATE ESTADISTICAS SET (CANTIDAD)=CANTIDAD+1 WHERE COMBINACION = "FULLS SERVIDOS";''')
+            base.commit()
+            return "FULL SERVIDO (35 puntos)"
+        else:
+            return "LA COMBINACION YA FUE REALIZADA"
+
+    elif (3 in dados.contadores(mesa)) and (2 in dados.contadores(mesa)):
+        c.execute('''SELECT F FROM TABLA WHERE JUGADOR={}'''.format(jugador))
+        a = c.fetchall()
+        if a == [(0,)]:
+            c.execute('''UPDATE TABLA SET (F)=30 WHERE JUGADOR={} '''.format(jugador))
+            c.execute('''UPDATE TABLA SET (PUNTOS)=PUNTOS+30 WHERE JUGADOR={} '''.format(jugador))
+            c.execute('''UPDATE ESTADISTICAS SET (CANTIDAD)=CANTIDAD+1 WHERE COMBINACION = "FULLS";''')
+            base.commit()
+            return "FULL (30 puntos)"
+        else:
+            return "LA COMBINACION YA FUE REALIZADA"
+
+
+    else:
+
+        return "NO SE REGISTRAN COMBINACIONES ESPECIALES"
